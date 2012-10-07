@@ -150,8 +150,6 @@ while(1){
 		++i;
 		while(input[i] != ')')
 		{
-			if (j == 0)
-				j = 1;
 			if(input[i] == ',')
 			{
 				args[j][k] = '\0';
