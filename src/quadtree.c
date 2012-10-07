@@ -66,10 +66,16 @@ void initRectTree(void) {
 	 rectTree = NULL;
  }
 
-void init_quadtree(char *args) {
+void create_rectangle(char args[][10]) {
+	char *name = args[0];
+	int cx = atoi(args[1]);
+	int cy = atoi(args[2]);
+	int lx = atoi(args[3]);
+	int ly = atoi(args[4]);
 
-	mxCifTree.World.Lenght[X] = 4;
-	mxCifTree.World.Lenght[Y] = 4;
+
+
+	printf("%s%s%s%d%s%d%s%d%s%d%s", "CREATED RECTANGLE ", name, "(", cx, ",", cy, ",", lx, ",", ly, ")");
 }
 
 void init_quadtree(char args[][10]) {
@@ -89,7 +95,7 @@ void decode_command(char *command, char args[][10])
 	else if (strcmp(command, "LIST_RECTANGLES") == 0)
 		return;
 	else if (strcmp(command, "CREATE_RECTANGLE") == 0)
-		return;
+		create_rectangle(args);
 	else if (strcmp(command, "SEARCH_POINT") == 0)
 		return;
 	else if (strcmp(command, "RECTANGLE_SEARCH") == 0)
