@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <strings.h>
 
+#include "util.h"
+
 #define MAX_STRING_LEN 256
 #define MAX_NAME_LEN 6
 
@@ -70,7 +72,15 @@ void init_quadtree(char *args) {
 	mxCifTree.World.Lenght[Y] = 4;
 }
 
-void decode_command(char *command, char *args)
+void init_quadtree(char args[][10]) {
+	int width = atoi(args[0]);
+	mxCifTree.World.Lenght[X] = 2 << width;
+	mxCifTree.World.Lenght[Y] = 2 << width;
+
+	printf("%s %d", "MX-CIF QUADTREE 0 INITIALIZED WITH PARAMETER ", width);
+}
+
+void decode_command(char *command, char args[][10])
 {
 	if (strcmp(command, "INIT_QUADTREE") == 0)
 		init_quadtree(args);

@@ -8,6 +8,6 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
-atoi(char *string);
+int atoi(char *string);
 
 #endif /* UTIL_H_ */
