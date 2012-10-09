@@ -1,14 +1,7 @@
-/*
- * data_structure.c
- *
- *  Created on: Sep 24, 2012
- *      Author: andres
- */
-
 #include <stdio.h>
 #include <strings.h>
+#include <stdlib.h>
 
-#include "util.h"
 #include "data_structures.h"
 
 /*these are variables holdings roots of corresponding trees, they are
