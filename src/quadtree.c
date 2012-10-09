@@ -8,7 +8,7 @@
  * global to avoid additional asterisks in calls */
 
 struct mxCif mxCifTree; //MX-CIF Quadtree
-struct Rectangle *rectTree; //Rectangle bin tree, sorted with respect to rect names
+struct bNode *rectTree; //Rectangle bin tree, sorted with respect to rect names
 
 void initMxCifTree(void) {
 	mxCifTree.mxCifRoot = NULL;
