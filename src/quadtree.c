@@ -43,36 +43,32 @@ void list_rectangles() {
 	printf("\n");
 }
 
-void insert_to_rectTree(struct bNode *root, struct bNode *newNode) {
+struct bNode *find_or_insert_to_rectTree(struct bNode *root, struct bNode *newNode) {
 	struct bNode *node = root;
 
 	if (root == NULL) {
-		rectTree = newNode;
+		return rectTree = newNode;
 		// printf("RECTANGLE %s inserted as ROOT\n", newNode->Rect->Name);
 	}
-	else {
-		int cmp;
-		while ((cmp = strcmp(node->Rect->Name, newNode->Rect->Name)) != 0) {
-			if (cmp > 0) {
-				if (node->binSon[LEFT] == NULL) {
-					// printf("RECTANGLE %s inserted on the LEFT\n", newNode->Rect->Name);
-					node->binSon[LEFT] = newNode; // Node safely inserted as a leaf
-					return;
-				}
-				else
-					node = node->binSon[LEFT];
-			}
-			else {
-				if (node->binSon[RIGHT] == NULL) {
-					// printf("RECTANGLE %s inserted on the RIGHT\n", newNode->Rect->Name);
-					node->binSon[RIGHT] = newNode; // Node safely inserted as a leaf
-					return;
-				}
-				else
-					node = node->binSon[RIGHT];
-			}
+	int cmp;
+	while ((cmp = strcmp(node->Rect->Name, newNode->Rect->Name)) != 0) {
+		if (cmp > 0) {
+			if (node->binSon[LEFT] == NULL)
+				// printf("RECTANGLE %s inserted on the LEFT\n", newNode->Rect->Name);
+				return node->binSon[LEFT] = newNode; // Node safely inserted as a leaf
+			else
+				node = node->binSon[LEFT];
+		}
+		else {
+			if (node->binSon[RIGHT] == NULL)
+				// printf("RECTANGLE %s inserted on the RIGHT\n", newNode->Rect->Name);
+				return node->binSon[RIGHT] = newNode; // Node safely inserted as a leaf
+			else
+				node = node->binSon[RIGHT];
 		}
 	}
+
+	return node;
 }
 
 void create_rectangle(char args[][MAX_NAME_LEN + 1]) {
@@ -95,7 +91,7 @@ void create_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	newNode->Rect = newRectangle;
 	newNode->binSon[LEFT] = newNode->binSon[RIGHT] = NULL;
 
-	insert_to_rectTree(rectTree, newNode);
+	find_or_insert_to_rectTree(rectTree, newNode);
 
 	printf("CREATED RECTANGLE(%s,%d,%d,%d,%d)\n", name, cx, cy, lx, ly);
 }
