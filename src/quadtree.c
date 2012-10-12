@@ -73,7 +73,6 @@ struct bNode *find_or_insert_to_rectTree(struct bNode *root, struct bNode *newNo
 
 void create_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	char *name = args[0];
-	strcpy(name, args[0]);
 	int cx = atoi(args[1]);
 	int cy = atoi(args[2]);
 	int lx = atoi(args[3]);
