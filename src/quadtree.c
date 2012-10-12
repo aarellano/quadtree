@@ -38,6 +38,24 @@ void print_pre_order(struct bNode *node) {
 	}
 }
 
+void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
+	struct bNode *find_or_insert_to_rectTree(struct bNode *root, struct bNode *newNode);
+	char *name = args[0];
+	struct Rectangle *rectangle;
+	struct bNode *node;
+
+	rectangle = (struct Rectangle *)malloc(sizeof(struct Rectangle));
+	strcpy(name, args[0]);
+
+	strcpy(rectangle->Name, name);
+
+	node = (struct bNode *)malloc(sizeof(struct bNode));
+	node->Rect = rectangle;
+
+	node = find_or_insert_to_rectTree(rectTree, node);
+	printf("RECTANGLE %s(%d,%d,%d,%d) INSERTED\n", node->Rect->Name, node->Rect->Center[X],node->Rect->Center[Y],node->Rect->Lenght[X],node->Rect->Lenght[Y]);
+}
+
 void list_rectangles() {
 	print_in_order(rectTree);
 	printf("\n");
@@ -118,7 +136,7 @@ void decode_command(char *command, char args[][MAX_NAME_LEN + 1])
 	else if (strcmp(command, "RECTANGLE_SEARCH") == 0)
 		return;
 	else if (strcmp(command, "INSERT") == 0)
-		return;
+		insert_rectangle(args);
 	else if (strcmp(command, "DELETE_RECTANGLE") == 0 || strcmp(command, "DELETE_POINT") == 0)
 		return;
 	else if (strcmp(command, "MOVE") == 0)
