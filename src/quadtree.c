@@ -1,8 +1,9 @@
 #include <stdio.h>
-#include <strings.h>
+#include <string.h>
 #include <stdlib.h>
 
 #include "data_structures.h"
+#include "drawing_c.h"
 
 /*these are variables holdings roots of corresponding trees, they are
  * global to avoid additional asterisks in calls */
@@ -121,12 +122,20 @@ void init_quadtree(char args[][MAX_NAME_LEN + 1]) {
 	printf("%s %d", "MX-CIF QUADTREE 0 INITIALIZED WITH PARAMETER ", width);
 }
 
+void display() {
+	StartPicture((double)mxCifTree.World.Lenght[X] + 1, (double)mxCifTree.World.Lenght[Y] + 1);
+	SetLineDash(3, 3);
+	DrawRect(0, (double)mxCifTree.World.Lenght[X], (double)mxCifTree.World.Lenght[Y], 0);
+	SetLineDash(3, 3.0);
+	EndPicture();
+}
+
 void decode_command(char *command, char args[][MAX_NAME_LEN + 1])
 {
 	if (strcmp(command, "INIT_QUADTREE") == 0)
 		init_quadtree(args);
 	else if (strcmp(command, "DISPLAY") == 0)
-		return;
+		display();
 	else if (strcmp(command, "LIST_RECTANGLES") == 0)
 		list_rectangles();
 	else if (strcmp(command, "CREATE_RECTANGLE") == 0)

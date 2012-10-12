@@ -1,8 +1,9 @@
 #include "drawing_c.h"
+#include <stdio.h>
 
 /*
 	drawing.c
-	
+
 	A C/C++ implementation of drawing primitives.
 */
 
