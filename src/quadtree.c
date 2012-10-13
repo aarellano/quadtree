@@ -104,7 +104,7 @@ static void insert_axis(rectangle_t *P, cnode_t *R, int Cv, int Lv, axis V) {
 	T->rect = P;
 }
 
-static void cif_insert(rectangle_t *P, struct mxcif *cifTree, int Cx, int Cy, int Lx, int Ly) {
+static void cif_insert(rectangle_t *P, struct mxcif *cif_tree, int Cx, int Cy, int Lx, int Ly) {
 	int Sx[] = {-1, 1, -1, 1};
 	int Sy[] = {1, 1, -1, -1};
 	cnode_t *T;
@@ -113,10 +113,10 @@ static void cif_insert(rectangle_t *P, struct mxcif *cifTree, int Cx, int Cy, in
 	cnode_t *R;
 
 	printf("INSERTING RECTANGLE %s WITH CENTER COORDS %d,%d\n", P->rect_name, P->center[X], P->center[Y]);
-	if (cifTree->mx_cif_root == NULL)
-		cifTree->mx_cif_root = create_cnode();
+	if (cif_tree->mx_cif_root == NULL)
+		cif_tree->mx_cif_root = create_cnode();
 
-	R = cifTree->mx_cif_root;
+	R = cif_tree->mx_cif_root;
 	T = R;
 	Dx = bin_compare(P, Cx, X);
 	Dy = bin_compare(P, Cy, Y);
@@ -193,18 +193,18 @@ static void create_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	int lx = atoi(args[3]);
 	int ly = atoi(args[4]);
 
-	rectangle_t *newRectangle = (rectangle_t *)malloc(sizeof(rectangle_t));
-	newRectangle->rect_name = strdup(name);
-	newRectangle->bson[LEFT] = newRectangle->bson[RIGHT] = NULL;
-	newRectangle->center[X] = cx;
-	newRectangle->center[Y] = cy;
-	newRectangle->lenght[X] = lx;
-	newRectangle->lenght[Y] = ly;
+	rectangle_t *new_rectangle = (rectangle_t *)malloc(sizeof(rectangle_t));
+	new_rectangle->rect_name = strdup(name);
+	new_rectangle->bson[LEFT] = new_rectangle->bson[RIGHT] = NULL;
+	new_rectangle->center[X] = cx;
+	new_rectangle->center[Y] = cy;
+	new_rectangle->lenght[X] = lx;
+	new_rectangle->lenght[Y] = ly;
 
-	bnode_t *newNode = (bnode_t *)malloc(sizeof(bnode_t));
-	newNode->rect = newRectangle;
-	newNode->bson[LEFT] = newNode->bson[RIGHT] = NULL;
-	insert_to_btree(&rect_tree, newNode);
+	bnode_t *new_node = (bnode_t *)malloc(sizeof(bnode_t));
+	new_node->rect = new_rectangle;
+	new_node->bson[LEFT] = new_node->bson[RIGHT] = NULL;
+	insert_to_btree(&rect_tree, new_node);
 
 	printf("CREATED RECTANGLE(%s,%d,%d,%d,%d)\n", name, cx, cy, lx, ly);
 }
