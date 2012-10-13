@@ -11,6 +11,9 @@ bNode *rectTree; //Rectangle bin tree, sorted with respect to rect names
 const double DISPLAY_SIZE = 128;
 double scale_factor;
 
+// Forward declaration
+static bNode *find_or_insert_to_rectTree(bNode *root, bNode *newNode);
+
 static void init_mx_cif_tree(void) {
 	mxCifTree = (struct mxCif *)malloc(sizeof(struct mxCif));
 	mxCifTree->mxCifRoot = NULL;
@@ -139,7 +142,6 @@ static void cif_insert(Rectangle *P, struct mxCif *cifTree, int Cx, int Cy, int 
 }
 
 static void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
-	bNode *find_or_insert_to_rectTree(bNode *root, bNode *newNode);
 	char *name = args[0];
 	Rectangle *rectangle;
 	bNode *node;
