@@ -227,11 +227,32 @@ void init_quadtree(char args[][MAX_NAME_LEN + 1]) {
 	printf("MX-CIF QUADTREE 0 INITIALIZED WITH PARAMETER %d\n", width);
 }
 
+void traverse_bintree(bNode *node) {
+	if (node != NULL) {
+		printf("%s\n", node->Rect->Name);
+		traverse_bintree(node->binSon[LEFT]);
+		traverse_bintree(node->binSon[RIGHT]);
+	}
+}
+
+void traverse_quadtree(cNode *node) {
+	if (node != NULL) {
+		traverse_bintree(node->binSon[X]);
+		traverse_bintree(node->binSon[Y]);
+
+		traverse_quadtree(node->spcSon[NW]);
+		traverse_quadtree(node->spcSon[NE]);
+		traverse_quadtree(node->spcSon[SW]);
+		traverse_quadtree(node->spcSon[SE]);
+	}
+}
+
 void display() {
 	StartPicture(DISPLAY_SIZE + 1, DISPLAY_SIZE + 1);
 	SetLineDash(3, 3);
 	DrawRect(0, DISPLAY_SIZE, DISPLAY_SIZE, 0);
 	SetLineDash(3, 3);
+	traverse_quadtree(mxCifTree->mxCifRoot);
 	EndPicture();
 }
 
