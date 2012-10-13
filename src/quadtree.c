@@ -12,6 +12,8 @@ const double DISPLAY_SIZE = 128;
 double scale_factor;
 
 static bnode_t *find_btree(bnode_t *tree, bnode_t *node);
+static void traverse_bintree(bnode_t *node);
+static void traverse_quadtree(cnode_t *node);
 
 static void init_mx_cif_tree(void) {
 	mx_cif_tree = (struct mxcif *)malloc(sizeof(struct mxcif));
@@ -112,7 +114,6 @@ static void cif_insert(rectangle_t *P, struct mxcif *cif_tree, int Cx, int Cy, i
 	direction Dx, Dy;
 	cnode_t *R;
 
-	printf("INSERTING RECTANGLE %s WITH CENTER COORDS %d,%d\n", P->rect_name, P->center[X], P->center[Y]);
 	if (cif_tree->mx_cif_root == NULL)
 		cif_tree->mx_cif_root = create_cnode();
 
@@ -224,7 +225,8 @@ static void init_quadtree(char args[][MAX_NAME_LEN + 1]) {
 
 static void traverse_bintree(bnode_t *node) {
 	if (node != NULL) {
-		printf("%s\n", node->rect->rect_name);
+		if (node->rect)
+			printf("%s\n", node->rect->rect_name);
 		traverse_bintree(node->bson[LEFT]);
 		traverse_bintree(node->bson[RIGHT]);
 	}
