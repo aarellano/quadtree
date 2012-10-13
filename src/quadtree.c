@@ -102,16 +102,18 @@ void insert_axis(Rectangle *P, cNode *R, int Cv, int Lv, axis V) {
 	T->Rect = P;
 }
 
-void cif_insert(Rectangle *P, cNode *R, int Cx, int Cy, int Lx, int Ly) {
+void cif_insert(Rectangle *P, struct mxCif *cifTree, int Cx, int Cy, int Lx, int Ly) {
 	int Sx[] = {-1, 1, -1, 1};
 	int Sy[] = {1, 1, -1, -1};
 	cNode *T;
 	quadrant Q;
 	direction Dx, Dy;
+	cNode *R;
 
-	if (R == NULL)
-		R = create_cnode();
+	if (cifTree->mxCifRoot == NULL)
+		cifTree->mxCifRoot = create_cnode();
 
+	R = cifTree->mxCifRoot;
 	T = R;
 	Dx = bin_compare(P, Cx, X);
 	Dy = bin_compare(P, Cy, Y);
@@ -149,7 +151,7 @@ void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
 
 	node = find_or_insert_to_rectTree(rectTree, node);
 
-	cif_insert(node->Rect, mxCifTree->mxCifRoot, mxCifTree->World.Center[X], mxCifTree->World.Center[Y], mxCifTree->World.Center[X], mxCifTree->World.Center[Y]);
+	cif_insert(node->Rect, mxCifTree, mxCifTree->World.Center[X], mxCifTree->World.Center[Y], mxCifTree->World.Center[X], mxCifTree->World.Center[Y]);
 
 	printf("RECTANGLE %s(%d,%d,%d,%d) INSERTED\n", node->Rect->Name, node->Rect->Center[X],node->Rect->Center[Y],node->Rect->Lenght[X],node->Rect->Lenght[Y]);
 
