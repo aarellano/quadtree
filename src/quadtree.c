@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "quadtree.h"
 #include "drawing_c.h"
 
 struct mxCif *mxCifTree; //MX-CIF Quadtree
