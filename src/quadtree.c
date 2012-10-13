@@ -108,8 +108,6 @@ void cif_insert(Rectangle *P, cNode *R, int Cx, int Cy, int Lx, int Ly) {
 	cNode *T;
 	quadrant Q;
 	direction Dx, Dy;
-	// try direct asignment
-	R = mxCifTree->mxCifRoot;
 
 	if (R == NULL)
 		R = create_cnode();
