@@ -110,6 +110,7 @@ void cif_insert(Rectangle *P, struct mxCif *cifTree, int Cx, int Cy, int Lx, int
 	direction Dx, Dy;
 	cNode *R;
 
+	printf("INSERTING RECTANGLE %s WITH CENTER COORDS %d,%d\n", P->Name, P->Center[X], P->Center[Y]);
 	if (cifTree->mxCifRoot == NULL)
 		cifTree->mxCifRoot = create_cnode();
 
