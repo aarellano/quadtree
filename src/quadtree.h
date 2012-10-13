@@ -12,29 +12,27 @@ typedef enum {NW, NE, SW, SE} quadrant; //Use this ordering in traversal
 typedef enum {LEFT, RIGHT, BOTH} direction;
 
 typedef struct {
-	char *Name; //Name of the rectangle
-	struct Rectangle *binSon[NDIR_1D]; //Left and right sons
-	int Center[NDIR_1D]; //Centroid
-	int	Lenght[NDIR_1D]; //Distance to the borders of rect
-	int Label; //Used for LABEL() operation
-} Rectangle;
+	char *rect_name; //Name of the rectangle
+	struct rectangle *bson[NDIR_1D]; //Left and right sons
+	int center[NDIR_1D]; //Centroid
+	int	lenght[NDIR_1D]; //Distance to the borders of rect
+	int label; //Used for LABEL() operation
+} rectangle_t;
 
-//Node in binary tree of the set of rectangles
-typedef struct bNode {
-	struct bNode *binSon[NDIR_1D]; //Left and right sons
-	Rectangle *Rect; //Pointer to the rectangle whose area contains the axis subdivision point
-} bNode;
+typedef struct bnode {
+	struct bnode *bson[NDIR_1D]; //Left and right sons
+	rectangle_t *rect; //Pointer to the rectangle whose area contains the axis subdivision point
+} bnode_t;
 
-//Node in MX-CIF quadtree
-typedef struct cNode {
-	struct cNode *spcSon[NDIR_2D]; //Four principal quad directions
-	bNode *binSon[NDIR_1D]; //Pointers to rectangle sets for each of the axis
-} cNode;
+typedef struct cnode {
+	struct cnode *qson[NDIR_2D]; //Four principal quad directions
+	bnode_t *bson[NDIR_1D]; //Pointers to rectangle sets for each of the axis
+} cnode_t;
 
-struct mxCif {
-	struct cNode *mxCifRoot; //Root Node
-	Rectangle World; //World extent
-	int Id; //Quadtree ID
+struct mxcif {
+	struct cnode *mx_cif_root; //Root Node
+	rectangle_t world; //World extent
+	int id; //Quadtree ID
 };
 
 #endif /* DATA_STRUCTURES_H_ */
