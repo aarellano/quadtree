@@ -11,6 +11,9 @@
 struct mxCif mxCifTree; //MX-CIF Quadtree
 struct bNode *rectTree; //Rectangle bin tree, sorted with respect to rect names
 
+const double DISPLAY_SIZE = 128;
+double scale_factor;
+
 void initMxCifTree(void) {
 	mxCifTree.mxCifRoot = NULL;
 	strcpy(mxCifTree.World.Name, "MX-CIF");
@@ -218,6 +221,9 @@ void create_rectangle(char args[][MAX_NAME_LEN + 1]) {
 
 void init_quadtree(char args[][MAX_NAME_LEN + 1]) {
 	int width = atoi(args[0]);
+
+	scale_factor = DISPLAY_SIZE / (1 << width);
+
 	mxCifTree.World.Lenght[X] = 1 << width;
 	mxCifTree.World.Lenght[Y] = 1 << width;
 	mxCifTree.World.Center[X] = mxCifTree.World.Lenght[X] / 2;
@@ -227,10 +233,10 @@ void init_quadtree(char args[][MAX_NAME_LEN + 1]) {
 }
 
 void display() {
-	StartPicture((double)mxCifTree.World.Lenght[X] + 1, (double)mxCifTree.World.Lenght[Y] + 1);
+	StartPicture(DISPLAY_SIZE + 1, DISPLAY_SIZE + 1);
 	SetLineDash(3, 3);
-	DrawRect(0, (double)mxCifTree.World.Lenght[X], (double)mxCifTree.World.Lenght[Y], 0);
-	SetLineDash(3, 3.0);
+	DrawRect(0, DISPLAY_SIZE, DISPLAY_SIZE, 0);
+	SetLineDash(3, 3);
 	EndPicture();
 }
 
