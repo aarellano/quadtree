@@ -11,8 +11,7 @@ bNode *rectTree; //Rectangle bin tree, sorted with respect to rect names
 const double DISPLAY_SIZE = 128;
 double scale_factor;
 
-// Forward declaration
-static bNode *find_or_insert_to_rectTree(bNode *root, bNode *newNode);
+static bNode *find_btree(bNode *tree, bNode *node);
 
 static void init_mx_cif_tree(void) {
 	mxCifTree = (struct mxCif *)malloc(sizeof(struct mxCif));
@@ -152,12 +151,8 @@ static void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	node = (bNode *)malloc(sizeof(bNode));
 	node->Rect = rectangle;
 
-	node = find_or_insert_to_rectTree(rectTree, node);
-
+	node = find_btree(rectTree, node);
 	cif_insert(node->Rect, mxCifTree, mxCifTree->World.Center[X], mxCifTree->World.Center[Y], mxCifTree->World.Center[X], mxCifTree->World.Center[Y]);
-
-	printf("RECTANGLE %s(%d,%d,%d,%d) INSERTED\n", node->Rect->Name, node->Rect->Center[X],node->Rect->Center[Y],node->Rect->Lenght[X],node->Rect->Lenght[Y]);
-
 }
 
 static void list_rectangles(void) {
@@ -165,32 +160,30 @@ static void list_rectangles(void) {
 	printf("\n");
 }
 
-static bNode *find_or_insert_to_rectTree(bNode *root, bNode *newNode) {
-	bNode *node = root;
+static bNode *find_btree(bNode *tree, bNode *node) {
+	if (!tree)
+		return NULL;
 
-	if (root == NULL) {
-		return rectTree = newNode;
-		// printf("RECTANGLE %s inserted as ROOT\n", newNode->Rect->Name);
-	}
-	int cmp;
-	while ((cmp = strcmp(node->Rect->Name, newNode->Rect->Name)) != 0) {
-		if (cmp > 0) {
-			if (node->binSon[LEFT] == NULL)
-				// printf("RECTANGLE %s inserted on the LEFT\n", newNode->Rect->Name);
-				return node->binSon[LEFT] = newNode; // Node safely inserted as a leaf
-			else
-				node = node->binSon[LEFT];
-		}
-		else {
-			if (node->binSon[RIGHT] == NULL)
-				// printf("RECTANGLE %s inserted on the RIGHT\n", newNode->Rect->Name);
-				return node->binSon[RIGHT] = newNode; // Node safely inserted as a leaf
-			else
-				node = node->binSon[RIGHT];
-		}
-	}
+	if (strcmp(tree->Rect->Name, node->Rect->Name) == 0)
+		return node = tree;
+	else if (strcmp(tree->Rect->Name, node->Rect->Name) > 0)
+		node = find_btree(tree->binSon[LEFT], node);
+	else
+		node = find_btree(tree->binSon[RIGHT], node);
 
 	return node;
+}
+
+static void insert_to_btree(bNode **root, bNode *newNode) {
+	if (*root == NULL) {
+		*root = newNode;
+		return;
+	}
+
+	if (strcmp((*root)->Rect->Name, newNode->Rect->Name) > 0)
+		insert_to_btree(&(*root)->binSon[LEFT], newNode);
+	else if (strcmp((*root)->Rect->Name, newNode->Rect->Name ))
+		insert_to_btree(&(*root)->binSon[RIGHT], newNode);
 }
 
 static void create_rectangle(char args[][MAX_NAME_LEN + 1]) {
@@ -201,7 +194,7 @@ static void create_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	int ly = atoi(args[4]);
 
 	Rectangle *newRectangle = (Rectangle *)malloc(sizeof(Rectangle));
-	newRectangle->Name = name;
+	newRectangle->Name = strdup(name);
 	newRectangle->binSon[LEFT] = newRectangle->binSon[RIGHT] = NULL;
 	newRectangle->Center[X] = cx;
 	newRectangle->Center[Y] = cy;
@@ -211,8 +204,7 @@ static void create_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	bNode *newNode = (bNode *)malloc(sizeof(bNode));
 	newNode->Rect = newRectangle;
 	newNode->binSon[LEFT] = newNode->binSon[RIGHT] = NULL;
-
-	find_or_insert_to_rectTree(rectTree, newNode);
+	insert_to_btree(&rectTree, newNode);
 
 	printf("CREATED RECTANGLE(%s,%d,%d,%d,%d)\n", name, cx, cy, lx, ly);
 }
