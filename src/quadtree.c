@@ -39,6 +39,104 @@ void print_pre_order(struct bNode *node) {
 	}
 }
 
+direction bin_compare(struct Rectangle *P, long Cv, axis V) {
+	/*
+	** Determines whether rectangle P lies to the left of, right of, or contains line V=Cv
+	*/
+	if (((P->Center[V] - P->Lenght[V]) < Cv) && (Cv < ((P->Center[V] + P->Lenght[V]))))
+		return BOTH;
+	else if (Cv < P->Center[V])
+		return RIGHT;
+	else
+		return LEFT;
+}
+
+quadrant cif_compare(struct Rectangle *P, int Cx, int Cy) {
+	/*
+	** Return the quadrant of the MX-CIF quadtree rooted at position (Cx,Cy) that contains
+	** the centroid of rectangle P
+	*/
+
+	if (P->Center[X] < Cx)
+		if (P->Center[Y] < Cy)
+			return SW;
+		else
+			return NW;
+	else
+		if (P->Center[Y] < Cy)
+			return SE;
+		else
+			return NE;
+}
+
+struct bNode *create_bnode() {
+	struct bNode *node = (struct bNode *)malloc(sizeof(struct bNode));
+	node->Rect = NULL;
+	node->binSon[X] = node->binSon[Y] = NULL;
+	return node;
+}
+
+struct cNode *create_cnode() {
+	struct cNode *node = (struct cNode *)malloc(sizeof(struct cNode));
+	node->spcSon[NW] = node->spcSon[NE] = node->spcSon[SW] = node->spcSon[SE] = NULL;
+	node->binSon[X] = node->binSon[Y] = NULL;
+	return node;
+}
+
+void insert_axis(struct Rectangle *P, struct cNode *R, int Cv, int Lv, axis V) {
+	struct bNode *T;
+	int F[] = {-1, 1};
+	direction D;
+
+	if (R->binSon[V] == NULL)
+		R->binSon[V] = create_bnode();
+
+	T = R->binSon[V];
+	D = bin_compare(P, Cv, V);
+	while (D != BOTH) {
+		if (T->binSon[D])
+			T->binSon[D] = create_bnode();
+		T = T->binSon[D];
+		Lv = Lv / 2;
+		Cv = Cv + F[D] * Lv;
+		D = bin_compare(P, Cv, V);
+	}
+	T->Rect = P;
+}
+
+void cif_insert(struct Rectangle *P, struct cNode *R, int Cx, int Cy, int Lx, int Ly) {
+	int Sx[] = {-1, 1, -1, 1};
+	int Sy[] = {1, 1, -1, -1};
+	struct cNode *T;
+	quadrant Q;
+	direction Dx, Dy;
+
+	if (R == NULL)
+		R = create_cnode();
+
+	T = R;
+	Dx = bin_compare(P, Cx, X);
+	Dy = bin_compare(P, Cy, Y);
+
+	while ((Dx != BOTH) && (Dy != BOTH)) {
+		Q = cif_compare(P, Cx, Cy);
+		if (T->spcSon[Q] == NULL)
+			T->spcSon[Q] = create_cnode();
+		T = T->spcSon[Q];
+		Lx = Lx/2;
+		Ly = Ly/2;
+		Cx = Cx + Sx[Q] * Lx;
+		Cy = Cy + Sy[Q] * Ly;
+		Dx = bin_compare(P, Cx, X);
+		Dy = bin_compare(P, Cy, Y);
+	}
+
+	if (Dx = BOTH)
+		insert_axis(P, T, Cy, Ly, Y);
+	else
+		insert_axis(P, T, Cx, Lx, X);
+}
+
 void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	struct bNode *find_or_insert_to_rectTree(struct bNode *root, struct bNode *newNode);
 	char *name = args[0];
@@ -54,7 +152,11 @@ void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	node->Rect = rectangle;
 
 	node = find_or_insert_to_rectTree(rectTree, node);
+
+	cif_insert(node->Rect, mxCifTree.mxCifRoot, mxCifTree.World.Center[X], mxCifTree.World.Center[Y], mxCifTree.World.Center[X], mxCifTree.World.Center[Y]);
+
 	printf("RECTANGLE %s(%d,%d,%d,%d) INSERTED\n", node->Rect->Name, node->Rect->Center[X],node->Rect->Center[Y],node->Rect->Lenght[X],node->Rect->Lenght[Y]);
+
 }
 
 void list_rectangles() {
