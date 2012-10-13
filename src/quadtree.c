@@ -11,17 +11,17 @@ bNode *rectTree; //Rectangle bin tree, sorted with respect to rect names
 const double DISPLAY_SIZE = 128;
 double scale_factor;
 
-void init_mx_cif_tree(void) {
+static void init_mx_cif_tree(void) {
 	mxCifTree = (struct mxCif *)malloc(sizeof(struct mxCif));
 	mxCifTree->mxCifRoot = NULL;
 	mxCifTree->World.Name = "MX-CIF";
 }
 
-void init_rect_tree(void) {
+static void init_rect_tree(void) {
 	 rectTree = NULL;
  }
 
-void print_in_order(bNode *node) {
+static void print_in_order(bNode *node) {
 	if (node != NULL) {
 		print_in_order(node->binSon[LEFT]);
 		printf("%s(%d,%d,%d,%d) ", node->Rect->Name, node->Rect->Center[X], node->Rect->Center[Y], node->Rect->Lenght[X], node->Rect->Lenght[Y]);
@@ -29,7 +29,7 @@ void print_in_order(bNode *node) {
 	}
 }
 
-void print_pre_order(bNode *node) {
+static void print_pre_order(bNode *node) {
 	if (node != NULL) {
 		printf("%s", node->Rect->Name);
 		print_pre_order(node->binSon[LEFT]);
@@ -37,7 +37,7 @@ void print_pre_order(bNode *node) {
 	}
 }
 
-direction bin_compare(Rectangle *P, long Cv, axis V) {
+static direction bin_compare(Rectangle *P, long Cv, axis V) {
 	/*
 	** Determines whether rectangle P lies to the left of, right of, or contains line V=Cv
 	*/
@@ -49,7 +49,7 @@ direction bin_compare(Rectangle *P, long Cv, axis V) {
 		return LEFT;
 }
 
-quadrant cif_compare(Rectangle *P, int Cx, int Cy) {
+static quadrant cif_compare(Rectangle *P, int Cx, int Cy) {
 	/*
 	** Return the quadrant of the MX-CIF quadtree rooted at position (Cx,Cy) that contains
 	** the centroid of rectangle P
@@ -67,21 +67,21 @@ quadrant cif_compare(Rectangle *P, int Cx, int Cy) {
 			return NE;
 }
 
-bNode *create_bnode() {
+static bNode *create_bnode(void) {
 	bNode *node = (bNode *)malloc(sizeof(bNode));
 	node->Rect = NULL;
 	node->binSon[X] = node->binSon[Y] = NULL;
 	return node;
 }
 
-cNode *create_cnode() {
+static cNode *create_cnode(void) {
 	cNode *node = (cNode *)malloc(sizeof(cNode));
 	node->spcSon[NW] = node->spcSon[NE] = node->spcSon[SW] = node->spcSon[SE] = NULL;
 	node->binSon[X] = node->binSon[Y] = NULL;
 	return node;
 }
 
-void insert_axis(Rectangle *P, cNode *R, int Cv, int Lv, axis V) {
+static void insert_axis(Rectangle *P, cNode *R, int Cv, int Lv, axis V) {
 	bNode *T;
 	int F[] = {-1, 1};
 	direction D;
@@ -102,7 +102,7 @@ void insert_axis(Rectangle *P, cNode *R, int Cv, int Lv, axis V) {
 	T->Rect = P;
 }
 
-void cif_insert(Rectangle *P, struct mxCif *cifTree, int Cx, int Cy, int Lx, int Ly) {
+static void cif_insert(Rectangle *P, struct mxCif *cifTree, int Cx, int Cy, int Lx, int Ly) {
 	int Sx[] = {-1, 1, -1, 1};
 	int Sy[] = {1, 1, -1, -1};
 	cNode *T;
@@ -138,7 +138,7 @@ void cif_insert(Rectangle *P, struct mxCif *cifTree, int Cx, int Cy, int Lx, int
 		insert_axis(P, T, Cx, Lx, X);
 }
 
-void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
+static void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	bNode *find_or_insert_to_rectTree(bNode *root, bNode *newNode);
 	char *name = args[0];
 	Rectangle *rectangle;
@@ -158,12 +158,12 @@ void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
 
 }
 
-void list_rectangles() {
+static void list_rectangles(void) {
 	print_in_order(rectTree);
 	printf("\n");
 }
 
-bNode *find_or_insert_to_rectTree(bNode *root, bNode *newNode) {
+static bNode *find_or_insert_to_rectTree(bNode *root, bNode *newNode) {
 	bNode *node = root;
 
 	if (root == NULL) {
@@ -191,7 +191,7 @@ bNode *find_or_insert_to_rectTree(bNode *root, bNode *newNode) {
 	return node;
 }
 
-void create_rectangle(char args[][MAX_NAME_LEN + 1]) {
+static void create_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	char *name = args[0];
 	int cx = atoi(args[1]);
 	int cy = atoi(args[2]);
@@ -215,7 +215,7 @@ void create_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	printf("CREATED RECTANGLE(%s,%d,%d,%d,%d)\n", name, cx, cy, lx, ly);
 }
 
-void init_quadtree(char args[][MAX_NAME_LEN + 1]) {
+static void init_quadtree(char args[][MAX_NAME_LEN + 1]) {
 	int width = atoi(args[0]);
 
 	scale_factor = DISPLAY_SIZE / (1 << width);
@@ -228,7 +228,7 @@ void init_quadtree(char args[][MAX_NAME_LEN + 1]) {
 	printf("MX-CIF QUADTREE 0 INITIALIZED WITH PARAMETER %d\n", width);
 }
 
-void traverse_bintree(bNode *node) {
+static void traverse_bintree(bNode *node) {
 	if (node != NULL) {
 		printf("%s\n", node->Rect->Name);
 		traverse_bintree(node->binSon[LEFT]);
@@ -236,7 +236,7 @@ void traverse_bintree(bNode *node) {
 	}
 }
 
-void traverse_quadtree(cNode *node) {
+static void traverse_quadtree(cNode *node) {
 	if (node != NULL) {
 		traverse_bintree(node->binSon[X]);
 		traverse_bintree(node->binSon[Y]);
@@ -248,7 +248,7 @@ void traverse_quadtree(cNode *node) {
 	}
 }
 
-void display() {
+static void display(void) {
 	StartPicture(DISPLAY_SIZE + 1, DISPLAY_SIZE + 1);
 	SetLineDash(3, 3);
 	DrawRect(0, DISPLAY_SIZE, DISPLAY_SIZE, 0);
@@ -257,7 +257,7 @@ void display() {
 	EndPicture();
 }
 
-void decode_command(char *command, char args[][MAX_NAME_LEN + 1])
+static void decode_command(char *command, char args[][MAX_NAME_LEN + 1])
 {
 	if (strcmp(command, "INIT_QUADTREE") == 0)
 		init_quadtree(args);
@@ -299,7 +299,7 @@ void decode_command(char *command, char args[][MAX_NAME_LEN + 1])
 		return;
 }
 
-void read_command()
+static void read_command(void)
 {
 	char c;
 	int i = 0, j=0, k=0;
