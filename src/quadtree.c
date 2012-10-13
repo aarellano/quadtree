@@ -218,10 +218,12 @@ void create_rectangle(char args[][MAX_NAME_LEN + 1]) {
 
 void init_quadtree(char args[][MAX_NAME_LEN + 1]) {
 	int width = atoi(args[0]);
-	mxCifTree.World.Lenght[X] = 2 << width;
-	mxCifTree.World.Lenght[Y] = 2 << width;
+	mxCifTree.World.Lenght[X] = 1 << width;
+	mxCifTree.World.Lenght[Y] = 1 << width;
+	mxCifTree.World.Center[X] = mxCifTree.World.Lenght[X] / 2;
+	mxCifTree.World.Center[Y] = mxCifTree.World.Lenght[Y] / 2;
 
-	printf("%s %d", "MX-CIF QUADTREE 0 INITIALIZED WITH PARAMETER ", width);
+	printf("MX-CIF QUADTREE 0 INITIALIZED WITH PARAMETER %d\n", width);
 }
 
 void display() {
