@@ -153,7 +153,13 @@ static void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	node->rect = rectangle;
 
 	node = find_btree(rect_tree, node);
-	cif_insert(node->rect, mx_cif_tree, mx_cif_tree->world.center[X], mx_cif_tree->world.center[Y], mx_cif_tree->world.center[X], mx_cif_tree->world.center[Y]);
+
+	if (((node->rect->center[X] + node->rect->lenght[X]) > mx_cif_tree->world.lenght[X]) || ((node->rect->center[Y] + node->rect->lenght[Y]) > mx_cif_tree->world.lenght[Y]))
+		printf("INSERTION OF RECTANGLE %s(%d,%d,%d,%d) FAILED AS %s LIES PARTIALLY OUTSIDE SPACE SPANNED BY MX-CIF QUADTREE\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y], node->rect->rect_name);
+	else {
+		cif_insert(node->rect, mx_cif_tree, mx_cif_tree->world.center[X], mx_cif_tree->world.center[Y], mx_cif_tree->world.center[X], mx_cif_tree->world.center[Y]);
+		printf("RECTANGLE %s(%d,%d,%d,%d) INSERTED\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y]);
+	}
 }
 
 static void list_rectangles(void) {
