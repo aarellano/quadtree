@@ -46,7 +46,7 @@ static direction bin_compare(rectangle_t *P, long Cv, axis V) {
 	/*
 	** Determines whether rectangle P lies to the left of, right of, or contains line V=Cv
 	*/
-	if (((P->center[V] - P->lenght[V]) < Cv) && (Cv < ((P->center[V] + P->lenght[V]))))
+	if (((P->center[V] - P->lenght[V]) <= Cv) && (Cv < ((P->center[V] + P->lenght[V]))))
 		return BOTH;
 	else if (Cv < P->center[V])
 		return RIGHT;
