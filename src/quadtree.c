@@ -127,8 +127,8 @@ static void cif_insert(rectangle_t *P, struct mxcif *cif_tree, int Cx, int Cy, i
 		if (T->qson[Q] == NULL)
 			T->qson[Q] = create_cnode();
 		T = T->qson[Q];
-		Lx = Lx/2;
-		Ly = Ly/2;
+		Lx = Lx / 2;
+		Ly = Ly / 2;
 		Cx = Cx + Sx[Q] * Lx;
 		Cy = Cy + Sy[Q] * Ly;
 		Dx = bin_compare(P, Cx, X);
