@@ -10,6 +10,7 @@ bnode_t *rect_tree; //Rectangle bin tree, sorted with respect to rect names
 
 const double DISPLAY_SIZE = 128;
 double scale_factor;
+int trace = 0;
 
 static bnode_t *find_btree(bnode_t *tree, bnode_t *node);
 static void traverse_bintree(bnode_t *node);
@@ -89,6 +90,10 @@ static void insert_axis(rectangle_t *P, cnode_t *R, int Cv, int Lv, axis V) {
 	bnode_t *T;
 	int F[] = {-1, 1};
 	direction D;
+	int node_number = 0;
+
+	if (trace)
+		printf("%d%c ", node_number, V == 0 ? 'X' : 'Y');
 
 	if (R->bson[V] == NULL)
 		R->bson[V] = create_bnode();
@@ -101,6 +106,9 @@ static void insert_axis(rectangle_t *P, cnode_t *R, int Cv, int Lv, axis V) {
 		T = T->bson[D];
 		Lv = Lv / 2;
 		Cv = Cv + F[D] * Lv;
+		node_number = 2 * node_number + D + 1;
+		if (trace)
+			printf("%d%c ", node_number, V == 0 ? 'X' : 'Y');
 		D = bin_compare(P, Cv, V);
 	}
 	T->rect = P;
@@ -113,6 +121,7 @@ static void cif_insert(rectangle_t *P, struct mxcif *cif_tree, int Cx, int Cy, i
 	quadrant Q;
 	direction Dx, Dy;
 	cnode_t *R;
+	int node_number = 0;
 
 	if (cif_tree->mx_cif_root == NULL)
 		cif_tree->mx_cif_root = create_cnode();
@@ -121,6 +130,9 @@ static void cif_insert(rectangle_t *P, struct mxcif *cif_tree, int Cx, int Cy, i
 	T = R;
 	Dx = bin_compare(P, Cx, X);
 	Dy = bin_compare(P, Cy, Y);
+
+	if (trace)
+		printf("%d ", node_number);
 
 	while ((Dx != BOTH) && (Dy != BOTH)) {
 		Q = cif_compare(P, Cx, Cy);
@@ -133,6 +145,9 @@ static void cif_insert(rectangle_t *P, struct mxcif *cif_tree, int Cx, int Cy, i
 		Cy = Cy + Sy[Q] * Ly;
 		Dx = bin_compare(P, Cx, X);
 		Dy = bin_compare(P, Cy, Y);
+		node_number = 4 * node_number + Q + 1;
+		if (trace)
+			printf("%d ", node_number);
 	}
 
 	if (Dx == BOTH)
@@ -158,6 +173,8 @@ static void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
 		printf("INSERTION OF RECTANGLE %s(%d,%d,%d,%d) FAILED AS %s LIES PARTIALLY OUTSIDE SPACE SPANNED BY MX-CIF QUADTREE\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y], node->rect->rect_name);
 	else {
 		cif_insert(node->rect, mx_cif_tree, mx_cif_tree->world.center[X], mx_cif_tree->world.center[Y], mx_cif_tree->world.center[X], mx_cif_tree->world.center[Y]);
+		if (trace)
+			printf("\n");
 		printf("RECTANGLE %s(%d,%d,%d,%d) INSERTED\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y]);
 	}
 }
@@ -346,6 +363,12 @@ while(1){
 		}
 
 		decode_command(command_name, args);
+	} else {
+		i = i + 2;
+		if (input[i] == 'N') // "N" from "ON"
+			trace = 1;
+		else
+			trace = 0;
 	}
 
 	i = 0;
