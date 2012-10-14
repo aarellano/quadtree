@@ -15,6 +15,9 @@ int trace = 0;
 static bnode_t *find_btree(bnode_t *tree, bnode_t *node);
 static void traverse_bintree(bnode_t *node);
 static void traverse_quadtree(cnode_t *node);
+static int cross_axis(rectangle_t *P, bnode_t *R, int Cv, int Lv, axis V);
+static int rect_intersect(rectangle_t *P, int Cx, int Cy, int Lx, int Ly);
+static int cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int Ly);
 
 static void init_mx_cif_tree(void) {
 	mx_cif_tree = (struct mxcif *)malloc(sizeof(struct mxcif));
@@ -156,6 +159,66 @@ static void cif_insert(rectangle_t *P, struct mxcif *cif_tree, int Cx, int Cy, i
 		insert_axis(P, T, Cx, Lx, X);
 }
 
+static int cross_axis(rectangle_t *P, bnode_t *R, int Cv, int Lv, axis V) {
+	int F[]= {-1, 1};
+	direction D;
+
+	if (R == NULL)
+		return 0;
+	else if ((R->rect != NULL) && (rect_intersect(P, R->rect->center[X], R->rect->center[Y], R->rect->lenght[X], R->rect->lenght[Y])))
+		return 1;
+	else {
+		D = bin_compare(P, Cv, V);
+		Lv = Lv / 2;
+
+		if (D == BOTH)
+			return (cross_axis(P, R->bson[LEFT], Cv - Lv, Lv, V) || cross_axis(P, R->bson[LEFT], Cv + Lv, Lv, V));
+		else
+			return cross_axis(P, R->bson[D], Cv + F[D] * Lv, Lv, V);
+	}
+}
+
+static int rect_intersect(rectangle_t *P, int Cx, int Cy, int Lx, int Ly) {
+	int x = 0, y = 0;
+	if ((P->center[X] - P->lenght[X] >= Cx - Lx) && (P->center[X] - P->lenght[X] <= Cx + Lx - 1))
+		x = 1;
+	if ((P->center[X] + P->lenght[X] >= Cx - Lx) && (P->center[X] + P->lenght[X] <= Cx + Lx - 1))
+		x = 1;
+	if ((P->center[Y] - P->lenght[Y] >= Cy - Ly) && (P->center[Y] - P->lenght[Y] <= Cy + Ly - 1))
+		y = 1;
+	if ((P->center[Y] + P->lenght[Y] >= Cy - Ly) && (P->center[Y] + P->lenght[Y] <= Cy + Ly - 1))
+		y = 1;
+
+	if (y && x)
+		return 1;
+	else
+		return 0;
+}
+
+int cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int Ly) {
+	int Sx[] = {-1, 1, -1, 1};
+	int Sy[] = {1, 1, -1, -1};
+	int i;
+
+	if (R == NULL)
+		return 0;
+	else if (!rect_intersect(P, Cx, Cy, Lx, Ly)) // the rectangle must at least intersect the MX-CIF node quadrant
+		return 0;
+	else if (cross_axis(P, R->bson[Y], Cy, Ly, Y) || cross_axis(P, R->bson[X], Cx, Lx, X))
+		return 1;
+	else {
+		Lx = Lx / 2;
+		Ly = Ly / 2;
+
+		for (i = 0; i < 4; i++) {
+			// note that: NW=0, NE=1, SW=2, SE=3
+			if (cif_search(P, R->qson[i], Cx + Sx[i] * Lx, Cy + Sy[i] * Ly, Lx, Ly))
+				return 1;
+		}
+	}
+	return 0;
+}
+
 static void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	char *name = args[0];
 	rectangle_t *rectangle;
@@ -171,6 +234,10 @@ static void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
 
 	if (((node->rect->center[X] + node->rect->lenght[X]) > mx_cif_tree->world.lenght[X]) || ((node->rect->center[Y] + node->rect->lenght[Y]) > mx_cif_tree->world.lenght[Y]))
 		printf("INSERTION OF RECTANGLE %s(%d,%d,%d,%d) FAILED AS %s LIES PARTIALLY OUTSIDE SPACE SPANNED BY MX-CIF QUADTREE\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y], node->rect->rect_name);
+
+	else if (cif_search(node->rect, mx_cif_tree->mx_cif_root, mx_cif_tree->world.center[X], mx_cif_tree->world.center[Y], mx_cif_tree->world.lenght[X], mx_cif_tree->world.lenght[Y]))
+		printf("INSERTION OF RECTANGLE %s(%d,%d,%d,%d) FAILED AS %s INTERSECTS WITH AN EXISTING RECTANGLE\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y], node->rect->rect_name);
+
 	else {
 		cif_insert(node->rect, mx_cif_tree, mx_cif_tree->world.center[X], mx_cif_tree->world.center[Y], mx_cif_tree->world.center[X], mx_cif_tree->world.center[Y]);
 		if (trace)
