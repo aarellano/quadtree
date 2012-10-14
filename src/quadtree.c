@@ -179,17 +179,17 @@ static int cross_axis(rectangle_t *P, bnode_t *R, int Cv, int Lv, axis V) {
 }
 
 static int rect_intersect(rectangle_t *P, int Cx, int Cy, int Lx, int Ly) {
-	int x = 0, y = 0;
+	int intersect_x = 0, intersect_y = 0;
 	if ((P->center[X] - P->lenght[X] >= Cx - Lx) && (P->center[X] - P->lenght[X] <= Cx + Lx - 1))
-		x = 1;
+		intersect_x = 1;
 	if ((P->center[X] + P->lenght[X] >= Cx - Lx) && (P->center[X] + P->lenght[X] <= Cx + Lx - 1))
-		x = 1;
+		intersect_x = 1;
 	if ((P->center[Y] - P->lenght[Y] >= Cy - Ly) && (P->center[Y] - P->lenght[Y] <= Cy + Ly - 1))
-		y = 1;
+		intersect_y = 1;
 	if ((P->center[Y] + P->lenght[Y] >= Cy - Ly) && (P->center[Y] + P->lenght[Y] <= Cy + Ly - 1))
-		y = 1;
+		intersect_y = 1;
 
-	if (y && x)
+	if (intersect_y && intersect_x)
 		return 1;
 	else
 		return 0;
