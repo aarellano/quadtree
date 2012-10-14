@@ -232,14 +232,14 @@ static void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
 
 	node = find_btree(rect_tree, node);
 
-	if (((node->rect->center[X] + node->rect->lenght[X]) > mx_cif_tree->world.lenght[X]) || ((node->rect->center[Y] + node->rect->lenght[Y]) > mx_cif_tree->world.lenght[Y]))
+	if (((node->rect->center[X] + node->rect->lenght[X]) > mx_cif_tree->world.center[X] + mx_cif_tree->world.lenght[X]) || ((node->rect->center[Y] + node->rect->lenght[Y]) > mx_cif_tree->world.center[Y] + mx_cif_tree->world.lenght[Y]))
 		printf("INSERTION OF RECTANGLE %s(%d,%d,%d,%d) FAILED AS %s LIES PARTIALLY OUTSIDE SPACE SPANNED BY MX-CIF QUADTREE\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y], node->rect->rect_name);
 
 	else if (cif_search(node->rect, mx_cif_tree->mx_cif_root, mx_cif_tree->world.center[X], mx_cif_tree->world.center[Y], mx_cif_tree->world.lenght[X], mx_cif_tree->world.lenght[Y]))
 		printf("INSERTION OF RECTANGLE %s(%d,%d,%d,%d) FAILED AS %s INTERSECTS WITH AN EXISTING RECTANGLE\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y], node->rect->rect_name);
 
 	else {
-		cif_insert(node->rect, mx_cif_tree, mx_cif_tree->world.center[X], mx_cif_tree->world.center[Y], mx_cif_tree->world.center[X], mx_cif_tree->world.center[Y]);
+		cif_insert(node->rect, mx_cif_tree, mx_cif_tree->world.center[X], mx_cif_tree->world.center[Y], mx_cif_tree->world.lenght[X], mx_cif_tree->world.lenght[Y]);
 		if (trace)
 			printf("\n");
 		printf("RECTANGLE %s(%d,%d,%d,%d) INSERTED\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y]);
@@ -305,10 +305,10 @@ static void init_quadtree(char args[][MAX_NAME_LEN + 1]) {
 
 	scale_factor = DISPLAY_SIZE / (1 << width);
 
-	mx_cif_tree->world.lenght[X] = 1 << width;
-	mx_cif_tree->world.lenght[Y] = 1 << width;
-	mx_cif_tree->world.center[X] = mx_cif_tree->world.lenght[X] / 2;
-	mx_cif_tree->world.center[Y] = mx_cif_tree->world.lenght[Y] / 2;
+	mx_cif_tree->world.lenght[X] = (1 << width) / 2;
+	mx_cif_tree->world.lenght[Y] = (1 << width) / 2;
+	mx_cif_tree->world.center[X] = (1 << width) / 2;
+	mx_cif_tree->world.center[Y] = (1 << width) / 2;
 
 	printf("MX-CIF QUADTREE 0 INITIALIZED WITH PARAMETER %d\n", width);
 }
