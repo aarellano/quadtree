@@ -219,6 +219,17 @@ int cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int Ly) {
 	return 0;
 }
 
+static void search_point(char args[][MAX_NAME_LEN + 1]) {
+	int px = atoi(args[0]), py = atoi(args[1]);
+	printf("%d,%d\n", px, py);
+	rectangle_t *point_rect = (rectangle_t *)malloc(sizeof(rectangle_t));
+	point_rect->center[X] = px;
+	point_rect->center[Y] = py;
+
+	rectangle_t w = mx_cif_tree->world;
+	cif_search(point_rect, mx_cif_tree->mx_cif_root, w.center[X], w.center[Y], w.lenght[X], w.lenght[Y]);
+}
+
 static void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	char *name = args[0];
 	rectangle_t *rectangle;
@@ -232,14 +243,15 @@ static void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
 
 	node = find_btree(rect_tree, node);
 
-	if (((node->rect->center[X] + node->rect->lenght[X]) > mx_cif_tree->world.center[X] + mx_cif_tree->world.lenght[X]) || ((node->rect->center[Y] + node->rect->lenght[Y]) > mx_cif_tree->world.center[Y] + mx_cif_tree->world.lenght[Y]))
+	rectangle_t w = mx_cif_tree->world;
+	if (((node->rect->center[X] + node->rect->lenght[X]) > w.center[X] + w.lenght[X]) || ((node->rect->center[Y] + node->rect->lenght[Y]) > w.center[Y] + w.lenght[Y]))
 		printf("INSERTION OF RECTANGLE %s(%d,%d,%d,%d) FAILED AS %s LIES PARTIALLY OUTSIDE SPACE SPANNED BY MX-CIF QUADTREE\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y], node->rect->rect_name);
 
-	else if (cif_search(node->rect, mx_cif_tree->mx_cif_root, mx_cif_tree->world.center[X], mx_cif_tree->world.center[Y], mx_cif_tree->world.lenght[X], mx_cif_tree->world.lenght[Y]))
+	else if (cif_search(node->rect, mx_cif_tree->mx_cif_root, w.center[X], w.center[Y], w.lenght[X], w.lenght[Y]))
 		printf("INSERTION OF RECTANGLE %s(%d,%d,%d,%d) FAILED AS %s INTERSECTS WITH AN EXISTING RECTANGLE\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y], node->rect->rect_name);
 
 	else {
-		cif_insert(node->rect, mx_cif_tree, mx_cif_tree->world.center[X], mx_cif_tree->world.center[Y], mx_cif_tree->world.lenght[X], mx_cif_tree->world.lenght[Y]);
+		cif_insert(node->rect, mx_cif_tree, w.center[X], w.center[Y], w.lenght[X], w.lenght[Y]);
 		if (trace)
 			printf("\n");
 		printf("RECTANGLE %s(%d,%d,%d,%d) INSERTED\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y]);
