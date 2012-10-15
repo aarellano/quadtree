@@ -172,13 +172,17 @@ static rectangle_t *cross_axis(rectangle_t *P, bnode_t *R, int Cv, int Lv, axis 
 		return R->rect;
 	else {
 		D = bin_compare(P, Cv, V);
+		if (Lv == 2)
+			return NULL;
 		Lv = Lv / 2;
+		*bin_node_number = *bin_node_number * 2;
 		if (D == BOTH) {
 			rectangle_t *intersected_rect;
-
+			*bin_node_number = *bin_node_number + 1;
 			intersected_rect = cross_axis(P, R->bson[LEFT], Cv - Lv, Lv, V, bin_node_number);
 			if (intersected_rect)
 				return intersected_rect;
+			*bin_node_number = *bin_node_number + 1;
 			intersected_rect = cross_axis(P, R->bson[LEFT], Cv + Lv, Lv, V, bin_node_number);
 			if (intersected_rect)
 				return intersected_rect;
@@ -209,35 +213,37 @@ static int rect_intersect(rectangle_t *P, int Cx, int Cy, int Lx, int Ly) {
 rectangle_t *cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int Ly, int *quad_node_number) {
 	int Sx[] = {-1, 1, -1, 1};
 	int Sy[] = {1, 1, -1, -1};
-	int i;
 	rectangle_t *intersected_rect;
 	int x_counter = 0, y_counter = 0;
+	quadrant Q;
 
 	if (trace)
 		printf("%d ", *quad_node_number);
 
 	if (R == NULL)
 		return NULL;
-	else if (!rect_intersect(P, Cx, Cy, Lx, Ly)) // the rectangle must at least intersect the MX-CIF node quadrant
+	else if (!rect_intersect(P, Cx, Cy, Lx, Ly)) // the rectangle must at least intersect the MX-CIF node quadrant (but since we're using cif_compare(...), this shouldn't be neccessary)
 		return NULL;
 	else {
 		intersected_rect = cross_axis(P, R->bson[X], Cx, Lx, X, &x_counter);
 		if (intersected_rect)
 			return intersected_rect;
-				intersected_rect = cross_axis(P, R->bson[Y], Cy, Ly, Y, &y_counter);
+		intersected_rect = cross_axis(P, R->bson[Y], Cy, Ly, Y, &y_counter);
 		if (intersected_rect)
 			return intersected_rect;
 	}
 
+	if (Lx == 2)
+		return NULL;
 	Lx = Lx / 2;
 	Ly = Ly / 2;
 
-	for (i = 0; i < 4; i++) {
-		*quad_node_number = *quad_node_number * 4 + i + 1;
-		intersected_rect = cif_search(P, R->qson[i], Cx + Sx[i] * Lx, Cy + Sy[i] * Ly, Lx, Ly, quad_node_number);
-		if (intersected_rect != NULL)
-			return intersected_rect;
-	}
+	Q = cif_compare(P, Cx, Cy);
+	*quad_node_number = *quad_node_number * 4 + Q + 1;
+	intersected_rect = cif_search(P, R->qson[Q], Cx + Sx[Q] * Lx, Cy + Sy[Q] * Ly, Lx, Ly, quad_node_number);
+	if (intersected_rect != NULL)
+		return intersected_rect;
+
 	return NULL;
 }
 
