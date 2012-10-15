@@ -15,9 +15,9 @@ int trace = 0;
 static bnode_t *find_btree(bnode_t *tree, bnode_t *node);
 static void traverse_bintree(bnode_t *node);
 static void traverse_quadtree(cnode_t *node);
-static int cross_axis(rectangle_t *P, bnode_t *R, int Cv, int Lv, axis V);
+static rectangle_t *cross_axis(rectangle_t *P, bnode_t *R, int Cv, int Lv, axis V);
 static int rect_intersect(rectangle_t *P, int Cx, int Cy, int Lx, int Ly);
-static int cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int Ly);
+static rectangle_t *cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int Ly);
 
 static void init_mx_cif_tree(void) {
 	mx_cif_tree = (struct mxcif *)malloc(sizeof(struct mxcif));
@@ -159,34 +159,42 @@ static void cif_insert(rectangle_t *P, struct mxcif *cif_tree, int Cx, int Cy, i
 		insert_axis(P, T, Cx, Lx, X);
 }
 
-static int cross_axis(rectangle_t *P, bnode_t *R, int Cv, int Lv, axis V) {
+static rectangle_t *cross_axis(rectangle_t *P, bnode_t *R, int Cv, int Lv, axis V) {
 	int F[]= {-1, 1};
 	direction D;
 
 	if (R == NULL)
-		return 0;
+		return NULL;
 	else if ((R->rect != NULL) && (rect_intersect(P, R->rect->center[X], R->rect->center[Y], R->rect->lenght[X], R->rect->lenght[Y])))
-		return 1;
+		return R->rect;
 	else {
 		D = bin_compare(P, Cv, V);
 		Lv = Lv / 2;
+		if (D == BOTH) {
+			rectangle_t *intersected_rect;
 
-		if (D == BOTH)
-			return (cross_axis(P, R->bson[LEFT], Cv - Lv, Lv, V) || cross_axis(P, R->bson[LEFT], Cv + Lv, Lv, V));
+			intersected_rect = cross_axis(P, R->bson[LEFT], Cv - Lv, Lv, V);
+			if (intersected_rect)
+				return intersected_rect;
+			intersected_rect = cross_axis(P, R->bson[LEFT], Cv + Lv, Lv, V);
+			if (intersected_rect)
+				return intersected_rect;
+		}
 		else
 			return cross_axis(P, R->bson[D], Cv + F[D] * Lv, Lv, V);
 	}
+	return NULL;
 }
 
 static int rect_intersect(rectangle_t *P, int Cx, int Cy, int Lx, int Ly) {
 	int intersect_x = 0, intersect_y = 0;
 	if ((P->center[X] - P->lenght[X] >= Cx - Lx) && (P->center[X] - P->lenght[X] <= Cx + Lx - 1))
 		intersect_x = 1;
-	if ((P->center[X] + P->lenght[X] >= Cx - Lx) && (P->center[X] + P->lenght[X] <= Cx + Lx - 1))
+	if ((P->center[X] + P->lenght[X] - 1 >= Cx - Lx) && (P->center[X] + P->lenght[X] <= Cx + Lx - 1))
 		intersect_x = 1;
 	if ((P->center[Y] - P->lenght[Y] >= Cy - Ly) && (P->center[Y] - P->lenght[Y] <= Cy + Ly - 1))
 		intersect_y = 1;
-	if ((P->center[Y] + P->lenght[Y] >= Cy - Ly) && (P->center[Y] + P->lenght[Y] <= Cy + Ly - 1))
+	if ((P->center[Y] + P->lenght[Y] - 1 >= Cy - Ly) && (P->center[Y] + P->lenght[Y] <= Cy + Ly - 1))
 		intersect_y = 1;
 
 	if (intersect_y && intersect_x)
@@ -195,39 +203,49 @@ static int rect_intersect(rectangle_t *P, int Cx, int Cy, int Lx, int Ly) {
 		return 0;
 }
 
-int cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int Ly) {
+rectangle_t *cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int Ly) {
 	int Sx[] = {-1, 1, -1, 1};
 	int Sy[] = {1, 1, -1, -1};
 	int i;
+	rectangle_t *intersected_rect;
 
 	if (R == NULL)
-		return 0;
+		return NULL;
 	else if (!rect_intersect(P, Cx, Cy, Lx, Ly)) // the rectangle must at least intersect the MX-CIF node quadrant
-		return 0;
-	else if (cross_axis(P, R->bson[Y], Cy, Ly, Y) || cross_axis(P, R->bson[X], Cx, Lx, X))
-		return 1;
+		return NULL;
 	else {
-		Lx = Lx / 2;
-		Ly = Ly / 2;
-
-		for (i = 0; i < 4; i++) {
-			// note that: NW=0, NE=1, SW=2, SE=3
-			if (cif_search(P, R->qson[i], Cx + Sx[i] * Lx, Cy + Sy[i] * Ly, Lx, Ly))
-				return 1;
-		}
+		intersected_rect = cross_axis(P, R->bson[Y], Cy, Ly, Y);
+		if (intersected_rect)
+			return intersected_rect;
+		intersected_rect = cross_axis(P, R->bson[X], Cx, Lx, X);
+		if (intersected_rect)
+			return intersected_rect;
 	}
-	return 0;
+
+	Lx = Lx / 2;
+	Ly = Ly / 2;
+
+	for (i = 0; i < 4; i++) {
+		intersected_rect = cif_search(P, R->qson[i], Cx + Sx[i] * Lx, Cy + Sy[i] * Ly, Lx, Ly);
+		if (intersected_rect != NULL)
+			return intersected_rect;
+	}
+	return NULL;
 }
 
 static void search_point(char args[][MAX_NAME_LEN + 1]) {
 	int px = atoi(args[0]), py = atoi(args[1]);
-	printf("%d,%d\n", px, py);
 	rectangle_t *point_rect = (rectangle_t *)malloc(sizeof(rectangle_t));
 	point_rect->center[X] = px;
 	point_rect->center[Y] = py;
 
 	rectangle_t w = mx_cif_tree->world;
-	cif_search(point_rect, mx_cif_tree->mx_cif_root, w.center[X], w.center[Y], w.lenght[X], w.lenght[Y]);
+	rectangle_t *intersected_rect = cif_search(point_rect, mx_cif_tree->mx_cif_root, w.center[X], w.center[Y], w.lenght[X], w.lenght[Y]);
+	if (intersected_rect != NULL)
+		printf("POINT (%d,%d) CONTAINED BY RECTANGLE %s(%d,%d,%d,%d)\n", point_rect->center[X], point_rect->center[Y],
+			intersected_rect->rect_name, intersected_rect->center[X], intersected_rect->center[Y], intersected_rect->lenght[X], intersected_rect->lenght[Y]);
+	else
+		printf("POINT (%d,%d) NOT CONTAINED BY ANY RECTANGLE\n", point_rect->center[X], point_rect->center[Y]);
 }
 
 static void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
@@ -247,7 +265,7 @@ static void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	if (((node->rect->center[X] + node->rect->lenght[X]) > w.center[X] + w.lenght[X]) || ((node->rect->center[Y] + node->rect->lenght[Y]) > w.center[Y] + w.lenght[Y]))
 		printf("INSERTION OF RECTANGLE %s(%d,%d,%d,%d) FAILED AS %s LIES PARTIALLY OUTSIDE SPACE SPANNED BY MX-CIF QUADTREE\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y], node->rect->rect_name);
 
-	else if (cif_search(node->rect, mx_cif_tree->mx_cif_root, w.center[X], w.center[Y], w.lenght[X], w.lenght[Y]))
+	else if (cif_search(node->rect, mx_cif_tree->mx_cif_root, w.center[X], w.center[Y], w.lenght[X], w.lenght[Y]) != NULL)
 		printf("INSERTION OF RECTANGLE %s(%d,%d,%d,%d) FAILED AS %s INTERSECTS WITH AN EXISTING RECTANGLE\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y], node->rect->rect_name);
 
 	else {
@@ -366,7 +384,7 @@ static void decode_command(char *command, char args[][MAX_NAME_LEN + 1])
 	else if (strcmp(command, "CREATE_RECTANGLE") == 0)
 		create_rectangle(args);
 	else if (strcmp(command, "SEARCH_POINT") == 0)
-		return;
+		search_point(args);
 	else if (strcmp(command, "RECTANGLE_SEARCH") == 0)
 		return;
 	else if (strcmp(command, "INSERT") == 0)
