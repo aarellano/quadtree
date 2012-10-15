@@ -172,8 +172,6 @@ static rectangle_t *cross_axis(rectangle_t *P, bnode_t *R, int Cv, int Lv, axis 
 		return R->rect;
 	else {
 		D = bin_compare(P, Cv, V);
-		if (Lv == 2)
-			return NULL;
 		Lv = Lv / 2;
 		*bin_node_number = *bin_node_number * 2;
 		if (D == BOTH) {
@@ -187,6 +185,8 @@ static rectangle_t *cross_axis(rectangle_t *P, bnode_t *R, int Cv, int Lv, axis 
 			if (intersected_rect)
 				return intersected_rect;
 		}
+		else if (R->bson[D] == NULL)
+			return NULL;
 		else
 			return cross_axis(P, R->bson[D], Cv + F[D] * Lv, Lv, V, bin_node_number);
 	}
@@ -233,14 +233,13 @@ rectangle_t *cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int 
 			return intersected_rect;
 	}
 
-	if (Lx == 2)
-		return NULL;
 	Lx = Lx / 2;
 	Ly = Ly / 2;
 
 	Q = cif_compare(P, Cx, Cy);
 	*quad_node_number = *quad_node_number * 4 + Q + 1;
-	intersected_rect = cif_search(P, R->qson[Q], Cx + Sx[Q] * Lx, Cy + Sy[Q] * Ly, Lx, Ly, quad_node_number);
+	if (R->qson[Q])
+		intersected_rect = cif_search(P, R->qson[Q], Cx + Sx[Q] * Lx, Cy + Sy[Q] * Ly, Lx, Ly, quad_node_number);
 	if (intersected_rect != NULL)
 		return intersected_rect;
 
