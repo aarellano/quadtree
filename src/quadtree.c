@@ -390,6 +390,33 @@ static void display(void) {
 	EndPicture();
 }
 
+static void rectangle_search(char args[][MAX_NAME_LEN + 1]) {
+	char *name = args[0];
+	rectangle_t *search_rect, w;
+	bnode_t *node;
+	int counter = 0;
+
+	// Find the rectangle in the DB (BST) by its name
+	search_rect = (rectangle_t *)malloc(sizeof(rectangle_t));
+	search_rect->rect_name = name;
+	node = (bnode_t *)malloc(sizeof(bnode_t));
+	node->rect = search_rect;
+	node = find_btree(rect_tree, node);
+
+	// Find an intersecting rectangle in the MX-CIF
+	w = mx_cif_tree->world;
+	rectangle_t *over_rect = cif_search(node->rect, mx_cif_tree->mx_cif_root, w.center[X], w.center[Y], w.lenght[X], w.lenght[Y], &counter);
+	if (trace)
+		printf("\n");
+	if (over_rect != NULL)
+		printf("RECTANGLE %s(%d,%d,%d,%d) OVERLAPS RECTANGLE %s(%d,%d,%d,%d)\n",
+			node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y],
+			over_rect->rect_name, over_rect->center[X], over_rect->center[Y], over_rect->lenght[X], over_rect->lenght[Y]);
+	else
+		printf("RECTANGLE %s(%d,%d,%d,%d) DOES NOT OVERLAP ANY RECTANGLES\n",
+			node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y]);
+}
+
 static void decode_command(char *command, char args[][MAX_NAME_LEN + 1])
 {
 	if (strcmp(command, "INIT_QUADTREE") == 0)
@@ -403,7 +430,7 @@ static void decode_command(char *command, char args[][MAX_NAME_LEN + 1])
 	else if (strcmp(command, "SEARCH_POINT") == 0)
 		search_point(args);
 	else if (strcmp(command, "RECTANGLE_SEARCH") == 0)
-		return;
+		rectangle_search(args);
 	else if (strcmp(command, "INSERT") == 0)
 		insert_rectangle(args);
 	else if (strcmp(command, "DELETE_RECTANGLE") == 0 || strcmp(command, "DELETE_POINT") == 0)
