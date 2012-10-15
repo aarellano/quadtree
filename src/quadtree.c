@@ -264,10 +264,6 @@ static void insert_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	rectangle_t w = mx_cif_tree->world;
 	if (((node->rect->center[X] + node->rect->lenght[X]) > w.center[X] + w.lenght[X]) || ((node->rect->center[Y] + node->rect->lenght[Y]) > w.center[Y] + w.lenght[Y]))
 		printf("INSERTION OF RECTANGLE %s(%d,%d,%d,%d) FAILED AS %s LIES PARTIALLY OUTSIDE SPACE SPANNED BY MX-CIF QUADTREE\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y], node->rect->rect_name);
-
-	else if (cif_search(node->rect, mx_cif_tree->mx_cif_root, w.center[X], w.center[Y], w.lenght[X], w.lenght[Y]) != NULL)
-		printf("INSERTION OF RECTANGLE %s(%d,%d,%d,%d) FAILED AS %s INTERSECTS WITH AN EXISTING RECTANGLE\n", node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y], node->rect->rect_name);
-
 	else {
 		cif_insert(node->rect, mx_cif_tree, w.center[X], w.center[Y], w.lenght[X], w.lenght[Y]);
 		if (trace)
