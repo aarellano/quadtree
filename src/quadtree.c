@@ -345,7 +345,7 @@ static void create_rectangle(char args[][MAX_NAME_LEN + 1]) {
 	new_node->bson[LEFT] = new_node->bson[RIGHT] = NULL;
 	insert_to_btree(&rect_tree, new_node);
 
-	printf("CREATED RECTANGLE(%s,%d,%d,%d,%d)\n", name, cx, cy, lx, ly);
+	printf("CREATED RECTANGLE %s(%d,%d,%d,%d)\n", name, cx, cy, lx, ly);
 }
 
 static void init_quadtree(char args[][MAX_NAME_LEN + 1]) {
