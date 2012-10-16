@@ -240,8 +240,6 @@ rectangle_t *cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int 
 	*quad_node_number = *quad_node_number * 4 + Q + 1;
 	if (R->qson[Q])
 		intersected_rect = cif_search(P, R->qson[Q], Cx + Sx[Q] * Lx, Cy + Sy[Q] * Ly, Lx, Ly, quad_node_number);
-	if (intersected_rect != NULL)
-		return intersected_rect;
 
 	return NULL;
 }
