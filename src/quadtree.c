@@ -551,6 +551,10 @@ static void delete_rectangle(char args[][MAX_NAME_LEN + 1]) {
 			node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y]);
 }
 
+static void delete_point(char args[][MAX_NAME_LEN + 1]) {
+
+}
+
 static void decode_command(char *command, char args[][MAX_NAME_LEN + 1])
 {
 	if (strcmp(command, "INIT_QUADTREE") == 0)
@@ -567,8 +571,10 @@ static void decode_command(char *command, char args[][MAX_NAME_LEN + 1])
 		rectangle_search(args);
 	else if (strcmp(command, "INSERT") == 0)
 		insert_rectangle(args);
-	else if (strcmp(command, "DELETE_RECTANGLE") == 0 || strcmp(command, "DELETE_POINT") == 0)
+	else if (strcmp(command, "DELETE_RECTANGLE") == 0)
 		delete_rectangle(args);
+	else if (strcmp(command, "DELETE_POINT") == 0)
+		delete_point(args);
 	else if (strcmp(command, "MOVE") == 0)
 		return;
 	else if (strcmp(command, "TOUCH") == 0)
