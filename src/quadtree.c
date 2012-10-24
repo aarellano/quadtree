@@ -174,6 +174,8 @@ static rectangle_t *cross_axis(rectangle_t *P, bnode_t *R, int Cv, int Lv, axis 
 	else {
 		D = bin_compare(P, Cv, V);
 		Lv = Lv / 2;
+		if (Lv == 1)
+			return NULL;
 		*bin_node_number = *bin_node_number * 2;
 		if (D == BOTH) {
 			rectangle_t *intersected_rect;
@@ -211,7 +213,7 @@ static int rect_intersect(rectangle_t *P, int Cx, int Cy, int Lx, int Ly) {
 		return 0;
 }
 
-rectangle_t *cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int Ly, int *quad_node_number) {
+static rectangle_t *cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int Ly, int *quad_node_number) {
 	int Sx[] = {-1, 1, -1, 1};
 	int Sy[] = {1, 1, -1, -1};
 	rectangle_t *intersected_rect;
@@ -227,9 +229,8 @@ rectangle_t *cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int 
 		return NULL;
 	else {
 		intersected_rect = cross_axis(P, R->bson[X], Cx, Lx, X, &x_counter);
-		if (intersected_rect)
-			return intersected_rect;
-		intersected_rect = cross_axis(P, R->bson[Y], Cy, Ly, Y, &y_counter);
+		if (intersected_rect == NULL)
+			intersected_rect = cross_axis(P, R->bson[Y], Cy, Ly, Y, &y_counter);
 		if (intersected_rect)
 			return intersected_rect;
 	}
@@ -241,6 +242,94 @@ rectangle_t *cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int 
 	*quad_node_number = *quad_node_number * 4 + Q + 1;
 	if (R->qson[Q])
 		intersected_rect = cif_search(P, R->qson[Q], Cx + Sx[Q] * Lx, Cy + Sy[Q] * Ly, Lx, Ly, quad_node_number);
+	if (intersected_rect != NULL)
+		return intersected_rect;
+
+	return NULL;
+}
+
+static rectangle_t *delete_from_axis(rectangle_t *P, bnode_t **R, int Cv, int Lv, axis V, int *bin_node_number) {
+	int F[]= {-1, 1};
+	direction D;
+
+	if (trace)
+		printf("%d%c ", *bin_node_number, V == 0 ? 'X' : 'Y');
+
+	if (*(R) == NULL)
+		return NULL;
+	else if (((*R)->rect != NULL) && (rect_intersect(P, (*R)->rect->center[X], (*R)->rect->center[Y], (*R)->rect->lenght[X], (*R)->rect->lenght[Y]))) {
+		rectangle_t	*return_rect = (*R)->rect;
+		delete_from_btree(R);
+		return return_rect;
+	}
+	else {
+		D = bin_compare(P, Cv, V);
+		Lv = Lv / 2;
+		if (Lv == 1)
+			return NULL;
+		*bin_node_number = *bin_node_number * 2;
+		if (D == BOTH) {
+			rectangle_t *intersected_rect;
+			*bin_node_number = *bin_node_number + 1;
+			intersected_rect = delete_from_axis(P, &((*R)->bson[LEFT]), Cv - Lv, Lv, V, bin_node_number);
+			if (intersected_rect) {
+				delete_from_btree(R);
+				return intersected_rect;
+			}
+			*bin_node_number = *bin_node_number + 1;
+			intersected_rect = delete_from_axis(P, &((*R)->bson[LEFT]), Cv + Lv, Lv, V, bin_node_number);
+			if (intersected_rect) {
+				delete_from_btree(R);
+				return intersected_rect;
+			}
+		}
+		else if ((*R)->bson[D] == NULL)
+			return NULL;
+		else
+			return delete_from_axis(P, &((*R)->bson[D]), Cv + F[D] * Lv, Lv, V, bin_node_number);
+	}
+	return NULL;
+}
+
+static rectangle_t *cif_delete(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int Ly, int *quad_node_number) {
+	int Sx[] = {-1, 1, -1, 1};
+	int Sy[] = {1, 1, -1, -1};
+	rectangle_t *intersected_rect;
+	int Cv, Lv, v_counter = 0;
+	quadrant Q;
+	axis V;
+
+	if (trace)
+		printf("%d ", *quad_node_number);
+
+	if (R == NULL)
+		return NULL;
+	else if (!rect_intersect(P, Cx, Cy, Lx, Ly)) // the rectangle must at least intersect the MX-CIF node quadrant (but since we're using cif_compare(...), this shouldn't be neccessary)
+		return NULL;
+	else {
+		V = X;
+		Cv = Cx;
+		Lv = Lx;
+		v_counter = 0;
+		intersected_rect = delete_from_axis(P, &(R->bson[V]), Cv, Lv, V, &v_counter);
+		if (intersected_rect == NULL) {
+			V = Y;
+			Cv = Cy;
+			Lv = Ly;
+			v_counter = 0;
+			intersected_rect = delete_from_axis(P, &(R->bson[V]), Cv, Lv, V, &v_counter);
+		}
+		if (intersected_rect)
+			return intersected_rect;
+	}
+
+	Lx = Lx / 2;
+	Ly = Ly / 2;
+
+	Q = cif_compare(P, Cx, Cy);
+	*quad_node_number = *quad_node_number * 4 + Q + 1;
+	if (R->qson[Q])
+		return cif_delete(P, R->qson[Q], Cx + Sx[Q] * Lx, Cy + Sy[Q] * Ly, Lx, Ly, quad_node_number);
 
 	return NULL;
 }
@@ -436,6 +525,32 @@ static void rectangle_search(char args[][MAX_NAME_LEN + 1]) {
 			node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y]);
 }
 
+static void delete_rectangle(char args[][MAX_NAME_LEN + 1]) {
+	char *name = args[0];
+	rectangle_t *search_rect, w;
+	bnode_t *node;
+	int counter = 0;
+
+	// Find the rectangle in the DB (BST) by its name
+	search_rect = (rectangle_t *)malloc(sizeof(rectangle_t));
+	search_rect->rect_name = name;
+	node = (bnode_t *)malloc(sizeof(bnode_t));
+	node->rect = search_rect;
+	node = find_btree(rect_tree, node);
+
+	w = mx_cif_tree->world;
+	rectangle_t *deleted_rect = cif_delete(node->rect, mx_cif_tree->mx_cif_root, w.center[X], w.center[Y], w.lenght[X], w.lenght[Y], &counter);
+	if (trace)
+		printf("\n");
+	if (deleted_rect != NULL){
+		printf("RECTANGLE %s(%d,%d,%d,%d) DELETED\n",
+			deleted_rect->rect_name, deleted_rect->center[X], deleted_rect->center[Y], deleted_rect->lenght[X], deleted_rect->lenght[Y]);
+		}
+	else
+		printf("RECTANGLE %s(%d,%d,%d,%d) DOES NOT EXIST IN THE QUADTREE\n",
+			node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y]);
+}
+
 static void decode_command(char *command, char args[][MAX_NAME_LEN + 1])
 {
 	if (strcmp(command, "INIT_QUADTREE") == 0)
@@ -453,7 +568,7 @@ static void decode_command(char *command, char args[][MAX_NAME_LEN + 1])
 	else if (strcmp(command, "INSERT") == 0)
 		insert_rectangle(args);
 	else if (strcmp(command, "DELETE_RECTANGLE") == 0 || strcmp(command, "DELETE_POINT") == 0)
-		return;
+		delete_rectangle(args);
 	else if (strcmp(command, "MOVE") == 0)
 		return;
 	else if (strcmp(command, "TOUCH") == 0)
