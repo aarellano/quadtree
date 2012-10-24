@@ -18,6 +18,7 @@ static void traverse_quadtree(cnode_t *node);
 static rectangle_t *cross_axis(rectangle_t *P, bnode_t *R, int Cv, int Lv, axis V, int *bin_node_number);
 static int rect_intersect(rectangle_t *P, int Cx, int Cy, int Lx, int Ly);
 static rectangle_t *cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int Ly, int *quad_node_number);
+static void delete_from_btree(bnode_t **node);
 
 static void init_mx_cif_tree(void) {
 	mx_cif_tree = (struct mxcif *)malloc(sizeof(struct mxcif));
@@ -242,6 +243,26 @@ rectangle_t *cif_search(rectangle_t *P, cnode_t *R, int Cx, int Cy, int Lx, int 
 		intersected_rect = cif_search(P, R->qson[Q], Cx + Sx[Q] * Lx, Cy + Sy[Q] * Ly, Lx, Ly, quad_node_number);
 
 	return NULL;
+}
+
+static void delete_from_btree(bnode_t **node) {
+	bnode_t *old_bnode = *node;
+	if ((*node)->bson[LEFT] == NULL) {
+		*node = (*node)->bson[RIGHT];
+		free(old_bnode);
+	} else if ((*node)->bson[RIGHT] == NULL) {
+		*node = (*node)->bson[LEFT];
+		free(old_bnode);
+	} else {
+		bnode_t *pred = (*node)->bson[LEFT];
+		while (pred->bson[RIGHT] != NULL)
+			pred = pred->bson[RIGHT];
+		void *temp = pred->rect;
+		pred->rect = (*node)->rect;
+		(*node)->rect = temp;
+
+		delete_from_btree(&pred);
+	}
 }
 
 static void search_point(char args[][MAX_NAME_LEN + 1]) {
