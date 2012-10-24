@@ -552,7 +552,26 @@ static void delete_rectangle(char args[][MAX_NAME_LEN + 1]) {
 }
 
 static void delete_point(char args[][MAX_NAME_LEN + 1]) {
+	int px = atoi(args[0]);
+	int py = atoi(args[1]);
+	rectangle_t *search_rect, *point_rect, w;
+	int counter = 0;
+	w = mx_cif_tree->world;
+	char *rect_name;
 
+	point_rect = (rectangle_t *)malloc(sizeof(rectangle_t));
+	point_rect->center[X] = px;
+	point_rect->center[Y] = py;
+	point_rect->lenght[X] = point_rect->lenght[Y] = 0;
+	search_rect = cif_search(point_rect, mx_cif_tree->mx_cif_root, w.center[X], w.center[Y], w.lenght[X], w.lenght[Y], &counter);
+
+	if (search_rect != NULL)
+		delete_rectangle(search_rect->rect_name);
+	else {
+		if (trace)
+			printf("\n");
+			printf("POINT (%d,%d) NOT IN ANY RECTANGLE\n", px, py);
+	}
 }
 
 static void decode_command(char *command, char args[][MAX_NAME_LEN + 1])
