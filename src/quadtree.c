@@ -557,7 +557,6 @@ static void delete_point(char args[][MAX_NAME_LEN + 1]) {
 	rectangle_t *search_rect, *point_rect, w;
 	int counter = 0;
 	w = mx_cif_tree->world;
-	char *rect_name;
 
 	point_rect = (rectangle_t *)malloc(sizeof(rectangle_t));
 	point_rect->center[X] = px;
