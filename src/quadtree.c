@@ -574,6 +574,48 @@ static void delete_point(char args[][MAX_NAME_LEN + 1]) {
 	}
 }
 
+static void move(char args[][MAX_NAME_LEN +1]) {
+	char *name = args[0];
+	int cx = atoi(args[1]);
+	int cy = atoi(args[2]);
+	rectangle_t *search_rect, *moved_rect, w;
+	bnode_t *node;
+	int counter = 0;
+	w = mx_cif_tree->world;
+
+	// Find the rectangle in the DB (BST) by its name
+	search_rect = (rectangle_t *)malloc(sizeof(rectangle_t));
+	search_rect->rect_name = name;
+	node = (bnode_t *)malloc(sizeof(bnode_t));
+	node->rect = search_rect;
+	node = find_btree(rect_tree, node);
+
+	moved_rect = (rectangle_t *)malloc(sizeof(rectangle_t));
+	*moved_rect = *(node->rect);
+	moved_rect->center[X] = moved_rect->center[X] + cx;
+	moved_rect->center[Y] = moved_rect->center[Y] + cy;
+
+	w = mx_cif_tree->world;
+	rectangle_t *over_rect = cif_search(moved_rect, mx_cif_tree->mx_cif_root, w.center[X], w.center[Y], w.lenght[X], w.lenght[Y], &counter);
+	counter = 0;
+	if (trace)
+		printf("\n");
+	if (over_rect != NULL)
+		printf("RECTANGLE %s(%d,%d,%d,%d) OVERLAPS RECTANGLE %s(%d,%d,%d,%d)\n",
+			node->rect->rect_name, node->rect->center[X], node->rect->center[Y], node->rect->lenght[X], node->rect->lenght[Y],
+			over_rect->rect_name, over_rect->center[X], over_rect->center[Y], over_rect->lenght[X], over_rect->lenght[Y]);
+	else {
+		cif_delete(node->rect, mx_cif_tree->mx_cif_root, w.center[X], w.center[Y], w.lenght[X], w.lenght[Y], &counter);
+		counter = 0;
+		if (trace)
+			printf("\n");
+		cif_insert(moved_rect, mx_cif_tree, w.center[X], w.center[Y], w.lenght[X], w.lenght[Y]);
+		if (trace)
+			printf("\n");
+		printf("RECTANGLE %s MOVED TO (%d,%d)\n", moved_rect->rect_name, moved_rect->center[X], moved_rect->center[Y]);
+	}
+}
+
 static void decode_command(char *command, char args[][MAX_NAME_LEN + 1])
 {
 	if (strcmp(command, "INIT_QUADTREE") == 0)
@@ -595,7 +637,7 @@ static void decode_command(char *command, char args[][MAX_NAME_LEN + 1])
 	else if (strcmp(command, "DELETE_POINT") == 0)
 		delete_point(args);
 	else if (strcmp(command, "MOVE") == 0)
-		return;
+		move(args);
 	else if (strcmp(command, "TOUCH") == 0)
 		return;
 	else if (strcmp(command, "WITHIN") == 0)
