@@ -174,8 +174,6 @@ static rectangle_t *cross_axis(rectangle_t *P, bnode_t *R, int Cv, int Lv, axis 
 	else {
 		D = bin_compare(P, Cv, V);
 		Lv = Lv / 2;
-		if (Lv == 1)
-			return NULL;
 		*bin_node_number = *bin_node_number * 2;
 		if (D == BOTH) {
 			rectangle_t *intersected_rect;
